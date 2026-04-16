@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "frontend",
+    "slug": "frontend",
+    "scheme": "luxegems",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.luxegems.frontend"
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "73c5f4c6-d722-4aa7-808b-ddcac777227e"
+      }
+    },
+    "owner": "abhi2616"
+  }
+}
