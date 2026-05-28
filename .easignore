@@ -1,0 +1,43 @@
+# Ignore other projects in the monorepo to keep the EAS archive focused only on the frontend
+admin/
+backend/
+
+# Ignore node_modules
+node_modules/
+frontend/node_modules/
+
+# Ignore Expo build outputs and caches
+.expo/
+frontend/.expo/
+dist/
+frontend/dist/
+web-build/
+frontend/web-build/
+
+# Ignore native build outputs and Gradle caches
+frontend/android/build/
+frontend/android/.gradle/
+frontend/android/app/build/
+ios/build/
+frontend/ios/build/
+
+# Ignore local configuration and credentials
+.env*.local
+frontend/.env*.local
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Metro / Debug logs
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# System / IDE
+.DS_Store
+.idea/
+.vscode/
