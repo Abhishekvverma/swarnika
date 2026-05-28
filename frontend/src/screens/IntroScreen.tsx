@@ -69,7 +69,7 @@ const IntroScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <Image
         source={require("../assets/images/intro.webp")}
@@ -77,10 +77,12 @@ const IntroScreen = () => {
       />
 
       <TouchableOpacity style={styles.skip} onPress={handleSkip}>
-        <Text style={styles.skipText}>Skip</Text>
+        <Text style={styles.skipText}>SKIP</Text>
       </TouchableOpacity>
 
       <View style={styles.card}>
+        <View style={styles.dragIndicator} />
+        
         <FlatList
           ref={flatListRef}
           data={slides}
@@ -92,7 +94,7 @@ const IntroScreen = () => {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.slide}>
-              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.title}>{item.title.toUpperCase()}</Text>
               <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
           )}
@@ -113,8 +115,8 @@ const IntroScreen = () => {
         <TouchableOpacity style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>
             {currentIndex === slides.length - 1
-              ? "Get Started"
-              : "Next"}
+              ? "GET STARTED"
+              : "NEXT"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -127,89 +129,126 @@ export default IntroScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#0C0C0C",
   },
 
   image: {
     width: "100%",
-    height: "65%",
+    height: "62%",
     resizeMode: "cover",
   },
 
   skip: {
     position: "absolute",
-    top: 50,
+    top: 55,
     right: 20,
-    backgroundColor: "#ffffffcc",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    backgroundColor: "rgba(12, 12, 12, 0.6)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
 
   skipText: {
-    fontSize: 12,
+    fontSize: 11,
+    color: "#F5F5F5",
     fontFamily: Fonts.medium,
+    letterSpacing: 1.5,
   },
 
   card: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 24,
+    backgroundColor: "#121212",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 34,
+    paddingTop: 12,
     alignItems: "center",
     marginTop: -30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)",
+    borderBottomWidth: 0,
+  },
+
+  dragIndicator: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    marginBottom: 24,
   },
 
   slide: {
     width: width - 48,
     alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 22,
+    color: "#FFFFFF",
     fontFamily: Fonts.bold,
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 12,
+    letterSpacing: 1.2,
+    lineHeight: 28,
   },
 
   subtitle: {
     fontSize: 14,
     textAlign: "center",
-    color: "#666",
+    color: "#A0A0A0",
     fontFamily: Fonts.regular,
+    lineHeight: 22,
   },
 
   dots: {
     flexDirection: "row",
-    marginVertical: 24,
+    marginVertical: 20,
+    alignItems: "center",
   },
 
   dot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#ccc",
-    marginHorizontal: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    marginHorizontal: 5,
   },
 
   activeDot: {
-    width: 18,
-    backgroundColor: "#B8860B",
+    width: 22,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#C5A850",
   },
 
   button: {
     width: "100%",
-    backgroundColor: "#B8860B",
-    paddingVertical: 14,
-    borderRadius: 12,
+    backgroundColor: "#C5A850",
+    paddingVertical: 16,
+    borderRadius: 30,
     alignItems: "center",
+    shadowColor: "#C5A850",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
 
   buttonText: {
-    color: "#fff",
+    color: "#0C0C0C",
     fontFamily: Fonts.bold,
-    fontSize: 15,
+    fontSize: 14,
+    letterSpacing: 1.5,
   },
 });
 

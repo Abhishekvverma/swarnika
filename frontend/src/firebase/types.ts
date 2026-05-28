@@ -48,4 +48,6 @@ export interface UserProfile {
   role: string;
   createdAt?: any;
   pushToken?: string;
+  phoneNumber?: string;
+  avatar?: string;
 }

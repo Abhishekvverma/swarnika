@@ -532,10 +532,9 @@ const CheckboxGroup = styled.div`
 `;
 
 const SubmitButton = styled.button`
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.primary};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-
+  background: linear-gradient(135deg, ${({ theme }) => theme.colors.primaryDark}, ${({ theme }) => theme.colors.primary});
+  color: ${({ theme }) => theme.colors.secondary};
+  border: none;
   padding: 12px 24px;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-weight: 600;
@@ -543,9 +542,8 @@ const SubmitButton = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.primary};
     transform: translateY(-1px);
-     color: ${({ theme }) => theme.colors.white};
+    opacity: 0.9;
   }
 `;
 

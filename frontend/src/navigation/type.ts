@@ -59,6 +59,8 @@ export type RootStackParamList = {
   SavedAddresses: undefined;
   PaymentMethods: undefined;
   Notifications: undefined;
+  HelpCenter: undefined;
+  MetalRates: undefined;
 };
 
 /**

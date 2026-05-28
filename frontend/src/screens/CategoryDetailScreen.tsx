@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Pressable,
+  StatusBar,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -16,9 +17,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/type";
 import ProductCard from "../components/ProductCard";
-import { CartContext } from "../context/CartContext";
-import { StoreContext } from "../context/StoreContext";
 import { ActivityIndicator } from "react-native";
+import { useTheme } from "../theme/ThemeContext";
+import { Fonts } from "../constants/fonts";
+import { useAppSelector } from "../store/hooks";
 
 type Props = NativeStackScreenProps<
   RootStackParamList,
@@ -28,22 +30,15 @@ type Props = NativeStackScreenProps<
 type NavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-}
-
-
-
 export default function CategoryDetailScreen({
   route,
 }: Props) {
   const { categoryName } = route.params;
   const navigation = useNavigation<NavigationProp>();
-  const { totalItems } = useContext(CartContext);
-  const { products, loading } = useContext(StoreContext);
+  const cart = useAppSelector((state) => state.cart.cart);
+  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const { products, loading } = useAppSelector((state) => state.store);
+  const { colors, theme } = useTheme();
 
   const [sortOption, setSortOption] =
     useState<"low" | "high" | null>(null);
@@ -52,6 +47,9 @@ export default function CategoryDetailScreen({
   const [genderFilter, setGenderFilter] = useState("All");
   const [sortModal, setSortModal] = useState(false);
   const [filterModal, setFilterModal] = useState(false);
+
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isPriceFocused, setIsPriceFocused] = useState(false);
 
   const filteredProducts = useMemo(() => {
     const normalize = (val: string) => val.toLowerCase().replace(/s$/, '');
@@ -107,10 +105,12 @@ export default function CategoryDetailScreen({
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      
       {loading ? (
         <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
-          <ActivityIndicator size="large" color="#D4AF37"/>
+          <ActivityIndicator size="large" color={colors.primary}/>
         </View>
       ) : (
       <>
@@ -118,25 +118,25 @@ export default function CategoryDetailScreen({
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
+          style={[styles.headerIcon, { borderColor: colors.border, backgroundColor: colors.card }]}
         >
-          <Ionicons name="arrow-back" size={24} />
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
           {categoryName.toUpperCase()}
         </Text>
 
         <View style={styles.headerIcons}>
-          <Ionicons name="search-outline" size={24} />
-
           <TouchableOpacity
+            style={[styles.headerIcon, { borderColor: colors.border, backgroundColor: colors.card }]}
             onPress={() => navigation.navigate("Cart")}
           >
-            <Ionicons name="bag-outline" size={24} color="#000" />
+            <Ionicons name="bag-outline" size={20} color={colors.text} />
 
             {totalItems > 0 && (
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>
+              <View style={[styles.badgeContainer, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+                <Text style={[styles.badgeText, { color: colors.background }]}>
                   {totalItems > 99 ? "99+" : totalItems}
                 </Text>
               </View>
@@ -146,9 +146,9 @@ export default function CategoryDetailScreen({
       </View>
 
       {/* FILTER BAR */}
-      <View style={styles.filterBar}>
-        <Text style={styles.itemCount}>
-          {filteredProducts.length} Items
+      <View style={[styles.filterBar, { borderBottomColor: colors.border }]}>
+        <Text style={[styles.itemCount, { color: colors.textSecondary }]}>
+          {filteredProducts.length} {filteredProducts.length === 1 ? "Item" : "Items"}
         </Text>
 
         <View style={styles.filterOptions}>
@@ -156,16 +156,16 @@ export default function CategoryDetailScreen({
             style={styles.filterButton}
             onPress={() => setSortModal(true)}
           >
-            <Ionicons name="swap-vertical" size={16} />
-            <Text>Sort</Text>
+            <Ionicons name="swap-vertical" size={16} color={colors.primary} />
+            <Text style={[styles.filterBtnText, { color: colors.text }]}>Sort</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.filterButton}
             onPress={() => setFilterModal(true)}
           >
-            <Ionicons name="options-outline" size={16} />
-            <Text>Filter</Text>
+            <Ionicons name="options-outline" size={16} color={colors.primary} />
+            <Text style={[styles.filterBtnText, { color: colors.text }]}>Filter</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -190,27 +190,30 @@ export default function CategoryDetailScreen({
             style={StyleSheet.absoluteFill}
             onPress={() => setSortModal(false)}
           />
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Sort By</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.modalHeaderIndicator} />
+            <Text style={[styles.modalTitle, { color: colors.text }]}>SORT BY</Text>
 
             <TouchableOpacity
+              style={[styles.sortOptionRow, sortOption === "low" && { borderLeftColor: colors.primary }]}
               onPress={() => {
                 setSortOption("low");
                 setSortModal(false);
               }}
             >
-              <Text style={styles.modalOption}>
+              <Text style={[styles.modalOptionText, { color: colors.text }, sortOption === "low" && { color: colors.primary }]}>
                 Price: Low → High
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={[styles.sortOptionRow, sortOption === "high" && { borderLeftColor: colors.primary }]}
               onPress={() => {
                 setSortOption("high");
                 setSortModal(false);
               }}
             >
-              <Text style={styles.modalOption}>
+              <Text style={[styles.modalOptionText, { color: colors.text }, sortOption === "high" && { color: colors.primary }]}>
                 Price: High → Low
               </Text>
             </TouchableOpacity>
@@ -225,42 +228,65 @@ export default function CategoryDetailScreen({
             style={StyleSheet.absoluteFill}
             onPress={() => setFilterModal(false)}
           />
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filter</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.modalHeaderIndicator} />
+            <Text style={[styles.modalTitle, { color: colors.text }]}>FILTER BY</Text>
 
-            <TextInput
-              placeholder="Search by name"
-              value={filterText}
-              onChangeText={setFilterText}
-              style={styles.input}
-            />
+            <View style={[styles.inputBox, isSearchFocused && { borderColor: colors.primary }]}>
+              <Ionicons name="search-outline" size={18} color={colors.textSecondary} />
+              <TextInput
+                placeholder="Search by name..."
+                placeholderTextColor={colors.textSecondary}
+                value={filterText}
+                onChangeText={setFilterText}
+                style={[styles.input, { color: colors.text }]}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+              />
+            </View>
 
-            <TextInput
-              placeholder="Max price"
-              value={maxPrice}
-              onChangeText={setMaxPrice}
-              keyboardType="numeric"
-              style={styles.input}
-            />
+            <View style={[styles.inputBox, isPriceFocused && { borderColor: colors.primary }]}>
+              <Ionicons name="pricetag-outline" size={18} color={colors.textSecondary} />
+              <TextInput
+                placeholder="Maximum Price"
+                placeholderTextColor={colors.textSecondary}
+                value={maxPrice}
+                onChangeText={setMaxPrice}
+                keyboardType="numeric"
+                style={[styles.input, { color: colors.text }]}
+                onFocus={() => setIsPriceFocused(true)}
+                onBlur={() => setIsPriceFocused(false)}
+              />
+            </View>
 
-            <Text style={{ marginTop: 10, marginBottom: 8, fontWeight: "500" }}>Gender</Text>
-            <View style={{ flexDirection: "row", gap: 10, marginBottom: 15 }}>
+            <Text style={[styles.filterSectionLabel, { color: colors.text }]}>GENDER</Text>
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
               {["All", "Men", "Women", "Unisex"].map(opt => (
                 <TouchableOpacity 
                    key={opt}
-                   style={[styles.genderPill, genderFilter === opt && styles.genderPillActive]}
+                   style={[
+                     styles.genderPill, 
+                     { borderColor: colors.border },
+                     genderFilter === opt && [styles.genderPillActive, { backgroundColor: colors.primary, borderColor: colors.primary }]
+                   ]}
                    onPress={() => setGenderFilter(opt)}
                 >
-                  <Text style={{ color: genderFilter === opt ? "#fff" : "#333", fontSize: 13 }}>{opt}</Text>
+                  <Text style={[
+                    styles.genderPillText, 
+                    { color: colors.text },
+                    genderFilter === opt && { color: colors.background }
+                  ]}>
+                    {opt}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             <TouchableOpacity
               onPress={() => setFilterModal(false)}
-              style={styles.applyButton}
+              style={[styles.applyButton, { backgroundColor: colors.text }]}
             >
-              <Text style={{ color: "#fff" }}>Apply</Text>
+              <Text style={[styles.applyButtonText, { color: colors.background }]}>APPLY FILTERS</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -272,40 +298,48 @@ export default function CategoryDetailScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1 },
 
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingVertical: 12,
   },
 
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    letterSpacing: 1,
-  },
-
-  headerIcons: { flexDirection: "row", gap: 20 },
-
-  badgeContainer: {
-    position: "absolute",
-    top: -4,
-    right: -8,
-    backgroundColor: "#E91E63",
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
   },
 
+  headerTitle: {
+    fontSize: 15,
+    fontFamily: Fonts.bold,
+    letterSpacing: 3,
+  },
+
+  headerIcons: { flexDirection: "row", gap: 8 },
+
+  badgeContainer: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+  },
+
   badgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
+    fontSize: 8,
+    fontFamily: Fonts.bold,
   },
 
   filterBar: {
@@ -313,10 +347,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    alignItems: "center",
   },
 
-  itemCount: { color: "#888" },
+  itemCount: { 
+    fontSize: 12, 
+    fontFamily: Fonts.medium,
+  },
 
   filterOptions: { flexDirection: "row" },
 
@@ -324,64 +361,122 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginLeft: 20,
     alignItems: "center",
+    gap: 6,
+  },
+  
+  filterBtnText: {
+    fontSize: 13,
+    fontFamily: Fonts.bold,
   },
 
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    marginTop: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 40,
   },
 
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.55)",
     justifyContent: "flex-end",
   },
 
   modalContent: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    padding: 24,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+  },
+  
+  modalHeaderIndicator: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignSelf: "center",
+    marginBottom: 20,
   },
 
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 15,
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    letterSpacing: 2,
+    marginBottom: 16,
   },
 
-  modalOption: {
-    paddingVertical: 12,
-    fontSize: 16,
+  sortOptionRow: {
+    paddingVertical: 14,
+    borderLeftWidth: 3,
+    borderLeftColor: "transparent",
+    paddingLeft: 12,
+  },
+  
+  modalOptionText: {
+    fontSize: 15,
+    fontFamily: Fonts.medium,
   },
 
   applyButton: {
-    backgroundColor: "black",
-    padding: 15,
+    paddingVertical: 16,
     alignItems: "center",
-    borderRadius: 10,
-    marginTop: 15,
+    borderRadius: 30,
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  
+  applyButtonText: {
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    letterSpacing: 1.5,
+  },
+
+  inputBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 52,
+    marginBottom: 16,
+    borderColor: "rgba(0,0,0,0.05)",
   },
 
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+  },
+  
+  filterSectionLabel: {
+    fontSize: 11,
+    fontFamily: Fonts.bold,
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    marginTop: 8,
   },
 
   genderPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
   
   genderPillActive: {
-    backgroundColor: "#000",
-    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  
+  genderPillText: {
+    fontSize: 12,
+    fontFamily: Fonts.bold,
   },
 });

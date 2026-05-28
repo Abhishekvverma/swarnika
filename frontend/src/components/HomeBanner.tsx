@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect, useContext } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, FlatList, Dimensions, Animated } from 'react-native';
-import { StoreContext } from '../context/StoreContext';
+import { useAppSelector } from '../store/hooks';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width - 40; // Parent container has marginHorizontal: 20 on both sides
@@ -27,7 +27,7 @@ const BANNERS = [
 ];
 
 export default function HomeBanner() {
-  const { banners } = useContext(StoreContext);
+  const { banners } = useAppSelector((state) => state.store);
   const displayBanners = banners.length > 0 ? banners : BANNERS;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -126,10 +126,10 @@ export default function HomeBanner() {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 180,
-    borderRadius: 20,
+    height: 190,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#0C0C0C',
   },
   bannerItem: {
     height: '100%',
@@ -141,49 +141,56 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    padding: 24,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   subtitle: {
-    color: '#D4AF37',
-    fontSize: 12,
+    color: '#C5A850', // Luxurious Champagne Gold
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 2,
-    marginBottom: 8,
+    letterSpacing: 3,
+    marginBottom: 6,
   },
   title: {
     color: '#FFF',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    lineHeight: 28,
+    lineHeight: 26,
     fontFamily: 'Poppins_700Bold',
-    marginBottom: 16,
+    marginBottom: 14,
+    letterSpacing: 0.5,
   },
   button: {
-    backgroundColor: '#FFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
+    backgroundColor: '#C5A850',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#C5A850',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonText: {
-    color: '#1A1A1A',
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: '#0C0C0C',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   pagination: {
     position: 'absolute',
-    bottom: 12,
+    bottom: 14,
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   dot: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFF',
-    marginHorizontal: 4,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#C5A850',
+    marginHorizontal: 3,
   },
 });

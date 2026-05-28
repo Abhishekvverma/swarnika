@@ -1,9 +1,9 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Image, StatusBar, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import { AuthContext } from "../context/AuthContext";
+import { useAppSelector } from "../store/hooks";
 
 /**
  * SplashScreen
@@ -28,7 +28,7 @@ const SPLASH_DURATION_MS = 3000;
 const SplashScreen = () => {
   // `loading` is true while Firebase is still resolving the persisted session.
   // We wait for it to resolve before deciding where to go.
-  const { user, loading } = useContext(AuthContext);
+  const { user, loading } = useAppSelector((state) => state.auth);
   const navigation = useNavigation<SplashNavProp>();
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const SplashScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#0C0A09" />
       <Image
         source={require("../assets/images/logo.png")}
         style={styles.logo}
@@ -73,13 +73,13 @@ export default SplashScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#0C0A09",
     alignItems: "center",
     justifyContent: "center",
   },
 
   logo: {
-    width: 220,
-    height: 220,
+    width: 280,
+    height: 280,
   },
 });

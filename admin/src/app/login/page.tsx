@@ -62,7 +62,7 @@ export default function LoginPage() {
         <LoginBox animation="slideUp">
           <LogoArea>
             <LogoIcon>✨</LogoIcon>
-            <Title>Luxe Gems</Title>
+            <Title>Swarnika</Title>
             <Subtitle>Admin Portal</Subtitle>
           </LogoArea>
           

@@ -1,18 +1,18 @@
 export const theme = {
   colors: {
     primary: '#D4AF37', // Luxe Gold
-    primaryDark: '#B4932D',
-    secondary: '#F4F4F5',
-    background: '#FFFFFF', // Clean white background
-    surface: '#FAFAFA', // Subtle off-white for elevated surfaces
-    text: '#09090B', // Very dark black text
-    textMuted: '#71717A', 
+    primaryDark: '#AA8417',
+    secondary: '#0C0A09', // Deep dark obsidian for active menu text/contrast
+    background: '#0C0A09', // Clean dark obsidian background
+    surface: '#161413', // Deep matte stone gray for card surfaces
+    text: '#F5F5F4', // Warm silk off-white text
+    textMuted: '#A8A29E', // Muted warm stone gray text
     white: '#FFFFFF',
-    border: '#E4E4E7', // Light gray border
+    border: '#2E2A24', // Subtle antique bronze/gold border
     danger: '#EF4444',
-    success: '#22C55E',
-    glass: 'rgba(255, 255, 255, 0.75)', // Light glass
-    glassBorder: 'rgba(0, 0, 0, 0.08)',
+    success: '#10B981',
+    glass: 'rgba(22, 20, 19, 0.75)', // Elegant dark glass
+    glassBorder: 'rgba(212, 175, 55, 0.1)',
   },
   fonts: {
     main: 'var(--font-poppins)',
@@ -35,6 +35,7 @@ export const theme = {
   shadows: {
     sm: '0 2px 8px rgba(0,0,0,0.4)',
     md: '0 8px 16px rgba(0,0,0,0.5)',
+    lg: '0 12px 32px rgba(0,0,0,0.6)',
     glow: '0 0 20px rgba(212, 175, 55, 0.15)', // Custom gold glow
   },
   transitions: {

@@ -18,6 +18,8 @@ import PersonalDetailsScreen from "../screens/PersonalDetailsScreen";
 import SavedAddressesScreen from "../screens/SavedAddressesScreen";
 import PaymentMethodsScreen from "../screens/PaymentMethodsScreen";
 import NotificationsScreen from "../screens/NotificationsScreen";
+import HelpCenterScreen from "../screens/HelpCenterScreen";
+import MetalRatesScreen from "../screens/MetalRatesScreen";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
@@ -64,6 +66,8 @@ export default function RootNavigator() {
       <RootStack.Screen name="SavedAddresses" component={SavedAddressesScreen} />
       <RootStack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
       <RootStack.Screen name="Notifications" component={NotificationsScreen} />
+      <RootStack.Screen name="HelpCenter" component={HelpCenterScreen} />
+      <RootStack.Screen name="MetalRates" component={MetalRatesScreen} />
     </RootStack.Navigator>
   );
 }

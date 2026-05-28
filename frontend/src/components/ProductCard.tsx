@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import {
   StyleSheet,
   View,
@@ -8,7 +8,10 @@ import {
   Dimensions,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import { WishlistContext } from "../context/WishlistContext";
+import { useTheme } from "../theme/ThemeContext";
+import { Fonts } from "../constants/fonts";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { toggleWishlist } from "../store/slices/wishlistSlice";
 
 const { width } = Dimensions.get("window");
 
@@ -27,26 +30,43 @@ const ProductCard: React.FC<ProductCardProps> = ({
   image,
   onPress,
 }) => {
-  const { isWishlisted, toggleWishlist } = useContext(WishlistContext);
-  const wishlisted = isWishlisted(id);
+  const dispatch = useAppDispatch();
+  const wishlist = useAppSelector((state) => state.wishlist.wishlist);
+  const wishlisted = wishlist.some((w) => w.id === id);
+  const { colors } = useTheme();
+  
+  const parsedPrice = typeof price === "number" ? price : parseFloat(String(price).replace(/[^0-9.]/g, ""));
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <TouchableOpacity
-        style={styles.heart}
-        onPress={() => toggleWishlist({ id, name, price, image })}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Icon
-          name={wishlisted ? "heart" : "heart-outline"}
-          size={20}
-          color={wishlisted ? "#E91E63" : "#B8860B"}
-        />
-      </TouchableOpacity>
+    <TouchableOpacity 
+      style={[styles.card, { backgroundColor: colors.card }]} 
+      onPress={onPress}
+      activeOpacity={0.9}
+    >
+      <View style={[styles.imageWrapper, { borderColor: colors.border }]}>
+        <Image source={{ uri: image }} style={styles.image} />
+        
+        <TouchableOpacity
+          style={[styles.heart, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={() => dispatch(toggleWishlist({ id, name, price: parsedPrice, image }))}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Icon
+            name={wishlisted ? "heart" : "heart-outline"}
+            size={18}
+            color={wishlisted ? "#E74C3C" : colors.primary}
+          />
+        </TouchableOpacity>
+      </View>
 
-      <Image source={{ uri: image }} style={styles.image} />
-      <Text style={styles.name} numberOfLines={1}>{name}</Text>
-      <Text style={styles.price}>₹{price}</Text>
+      <View style={styles.info}>
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
+          {name}
+        </Text>
+        <Text style={[styles.price, { color: colors.primary }]}>
+          ₹{parsedPrice.toLocaleString()}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -55,32 +75,48 @@ export default ProductCard;
 
 const styles = StyleSheet.create({
   card: {
-    width: (width - 60) / 2,
+    width: (width - 54) / 2,
     marginBottom: 20,
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  imageWrapper: {
+    position: "relative",
+    borderBottomWidth: 1,
   },
   image: {
     width: "100%",
-    height: 180,
-    borderRadius: 15,
-    backgroundColor: "#f9f9f9",
-    resizeMode: "contain",
+    height: 170,
+    backgroundColor: "transparent",
+    resizeMode: "cover",
   },
   heart: {
     position: "absolute",
     top: 10,
     right: 10,
     zIndex: 1,
-    backgroundColor: "rgba(255,255,255,0.85)",
-    borderRadius: 20,
-    padding: 5,
+    borderRadius: 18,
+    width: 32,
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  info: {
+    padding: 12,
   },
   name: {
-    marginTop: 10,
-    fontWeight: "500",
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    marginBottom: 4,
   },
   price: {
-    color: "#B8860B",
-    fontWeight: "bold",
-    marginTop: 4,
+    fontSize: 14,
+    fontFamily: Fonts.bold,
   },
 });

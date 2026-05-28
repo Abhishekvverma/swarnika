@@ -62,7 +62,7 @@ export default function UsersPage() {
 }
 
 const Container = styled.div`
-  padding: 40px;
+  width: 100%;
 `;
 
 const Header = styled.div`
@@ -76,12 +76,12 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  color: ${({ theme }) => theme.colors.textMuted};
   font-size: 14px;
 `;
 
 const TableContainer = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 12px;
   box-shadow: ${({ theme }) => theme.shadows.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -97,13 +97,12 @@ const Table = styled.table`
     text-align: left;
     border-bottom: 1px solid ${({ theme }) => theme.colors.border};
     font-size: 14px;
-    color: #000;
-
+    color: ${({ theme }) => theme.colors.text};
   }
 
   th {
-    background: #fafafa;
-    color: #666;
+    background: rgba(255, 255, 255, 0.02);
+    color: ${({ theme }) => theme.colors.textMuted};
     font-weight: 500;
   }
 `;
@@ -111,5 +110,5 @@ const Table = styled.table`
 const LoadingText = styled.div`
   padding: 40px;
   text-align: center;
-  color: #000;
+  color: ${({ theme }) => theme.colors.textMuted};
 `;

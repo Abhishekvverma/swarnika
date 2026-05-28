@@ -8,17 +8,20 @@ import {
   TextInput,
   StyleSheet,
   FlatList,
-  Image,
   TouchableOpacity,
   ListRenderItem,
   ScrollView,
+  StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { StoreContext } from "../context/StoreContext";
 import { ActivityIndicator } from "react-native";
+import { useTheme } from "../theme/ThemeContext";
+import { Fonts } from "../constants/fonts";
+import ProductCard from "../components/ProductCard";
+import { useAppSelector } from "../store/hooks";
 
 interface Product {
   id: string;
@@ -32,10 +35,12 @@ const STORAGE_KEY = "RECENT_SEARCHES";
 
 
 const SearchScreen = () => {
+  const { colors, theme } = useTheme();
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [isFocused, setIsFocused] = useState(false);
   const navigation = useNavigation<any>();
-  const { products, loading } = React.useContext(StoreContext);
+  const { products, loading } = useAppSelector((state) => state.store);
 
   useEffect(() => {
     loadRecentSearches();
@@ -81,39 +86,54 @@ const SearchScreen = () => {
   };
 
   const renderProduct: ListRenderItem<any> = ({ item }) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("ProductDetail" as any, { product: item } as any)}>
-      <Image source={{ uri: item.image }} style={styles.productImage} />
-      <Text style={styles.productTitle}>{item.name}</Text>
-      <Text style={styles.price}>₹{item.price}</Text>
-    </TouchableOpacity>
+    <ProductCard
+      id={item.id}
+      image={item.image || ""}
+      name={item.name}
+      price={item.price.toString()}
+      onPress={() => navigation.navigate("ProductDetail", { product: item })}
+    />
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      
       {loading ? (
         <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
-          <ActivityIndicator size="large" color="#D4AF37"/>
+          <ActivityIndicator size="large" color={colors.primary}/>
         </View>
       ) : (
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Search Bar */}
         <View style={styles.searchRow}>
-<TouchableOpacity onPress={() => navigation.goBack()}>
-  <Ionicons name="arrow-back" size={22} color="#333" />
-</TouchableOpacity>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={18} color="#999" />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </TouchableOpacity>
+          <View 
+            style={[
+              styles.searchBar, 
+              { 
+                backgroundColor: colors.card, 
+                borderColor: isFocused ? colors.primary : colors.border 
+              }
+            ]}
+          >
+            <Ionicons name="search" size={18} color={isFocused ? colors.primary : colors.textSecondary} />
             <TextInput
               placeholder="Search gold, diamond..."
-              style={styles.input}
+              placeholderTextColor={colors.textSecondary}
+              style={[styles.input, { color: colors.text }]}
               value={query}
               onChangeText={setQuery}
               onSubmitEditing={handleSubmit}
               returnKeyType="search"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
             />
             {query.length > 0 && (
               <TouchableOpacity onPress={() => setQuery("")}>
-                <Ionicons name="close-circle" size={18} color="#999" />
+                <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
           </View>
@@ -126,14 +146,14 @@ const SearchScreen = () => {
             {recentSearches.length > 0 && (
               <>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Recent Searches</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Searches</Text>
                   <TouchableOpacity onPress={clearAll}>
                     <Text style={styles.clearText}>Clear All</Text>
                   </TouchableOpacity>
                 </View>
 
                 {recentSearches.map((item, index) => (
-                  <View key={index} style={styles.recentItem}>
+                  <View key={index} style={[styles.recentItem, { borderColor: colors.border }]}>
                     <TouchableOpacity
                       style={styles.recentLeft}
                       onPress={() => setQuery(item)}
@@ -141,13 +161,13 @@ const SearchScreen = () => {
                       <Ionicons
                         name="time-outline"
                         size={18}
-                        color="#888"
+                        color={colors.textSecondary}
                       />
-                      <Text style={styles.recentText}>{item}</Text>
+                      <Text style={[styles.recentText, { color: colors.textSecondary }]}>{item}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={() => removeSearch(item)}>
-                      <Ionicons name="close" size={18} color="#999" />
+                      <Ionicons name="close" size={18} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -155,12 +175,12 @@ const SearchScreen = () => {
             )}
 
             {/* Suggested */}
-            <Text style={[styles.sectionTitle, { marginTop: 25 }]}>
-              Suggested for you
+            <Text style={[styles.sectionTitle, { marginTop: 32, color: colors.text }]}>
+              Suggested For You
             </Text>
 
             <FlatList
-              data={products}
+              data={products.slice(0, 4)}
               renderItem={renderProduct}
               keyExtractor={(item) => item.id || ""}
               numColumns={2}
@@ -174,9 +194,9 @@ const SearchScreen = () => {
         {/* 🔎 Results */}
         {query.length > 0 && (
           <>
-            <Text style={[styles.sectionTitle, { marginTop: 25 }]}>
+            <Text style={[styles.sectionTitle, { marginTop: 32, color: colors.text }]}>
               Results for{" "}
-              <Text style={styles.highlightText}>"{query}"</Text>
+              <Text style={[styles.highlightText, { color: colors.primary }]}>"{query}"</Text>
             </Text>
 
             <FlatList
@@ -188,7 +208,7 @@ const SearchScreen = () => {
               columnWrapperStyle={{ justifyContent: "space-between" }}
               contentContainerStyle={{ marginTop: 15 }}
               ListEmptyComponent={
-                <Text style={styles.emptyText}>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                   No results found for "{query}"
                 </Text>
               }
@@ -206,86 +226,77 @@ export default SearchScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F8F8",
     paddingHorizontal: 16,
   },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFEFEF",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginLeft: 10,
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    marginLeft: 8,
     flex: 1,
-    height: 40,
+    height: 48,
+    borderWidth: 1.5,
   },
   input: {
-    marginLeft: 6,
+    marginLeft: 10,
     flex: 1,
+    fontSize: 14,
+    fontFamily: Fonts.regular,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 25,
+    marginTop: 28,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#222",
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
   },
   clearText: {
-    fontSize: 13,
-    color: "#C89B3C",
+    fontSize: 12,
+    color: "#C5A850",
+    fontFamily: Fonts.bold,
+    letterSpacing: 0.5,
   },
   recentItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    borderColor: "#E0E0E0",
+    borderBottomWidth: 1,
   },
   recentLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
   recentText: {
-    marginLeft: 10,
+    marginLeft: 12,
     fontSize: 14,
-    color: "#333",
+    fontFamily: Fonts.medium,
   },
   highlightText: {
-    color: "#C89B3C",
-    fontWeight: "700",
+    fontFamily: Fonts.bold,
   },
   emptyText: {
-    marginTop: 20,
+    marginTop: 32,
     textAlign: "center",
-    color: "#888",
-  },
-  card: {
-    width: "48%",
-    marginBottom: 20,
-  },
-  productImage: {
-    width: "100%",
-    height: 160,
-    borderRadius: 12,
-  },
-  productTitle: {
-    marginTop: 8,
+    fontFamily: Fonts.medium,
     fontSize: 14,
-    color: "#333",
-  },
-  price: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#777",
   },
 });

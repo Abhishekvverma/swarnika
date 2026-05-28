@@ -228,12 +228,12 @@ const Input = styled.input`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   background: rgba(255, 255, 255, 0.02);
-  color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.text};
   font-size: 15px;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.secondary};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -243,19 +243,19 @@ const TextArea = styled.textarea`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   background: rgba(255, 255, 255, 0.02);
-  color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.text};
   font-size: 15px;
   resize: vertical;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.secondary};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
 const SubmitButton = styled.button`
-  background: linear-gradient(135deg, ${({ theme }) => theme.colors.primaryDark}, ${({ theme }) => theme.colors.secondary});
-  color: white;
+  background: linear-gradient(135deg, ${({ theme }) => theme.colors.primaryDark}, ${({ theme }) => theme.colors.primary});
+  color: ${({ theme }) => theme.colors.secondary};
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   padding: 14px 24px;

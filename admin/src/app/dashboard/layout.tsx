@@ -5,12 +5,13 @@ import styled from 'styled-components';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, LayoutDashboard, Package, ShoppingBag, Users, Tag, Diamond, Grid, Bell } from 'lucide-react';
+import { LogOut, LayoutDashboard, Package, ShoppingBag, Users, Tag, Diamond, Grid, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { NotificationListener } from '@/components/NotificationListener';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const navItems = [
     { label: 'Overview', path: '/dashboard', exact: true, icon: <LayoutDashboard size={20} /> },
@@ -25,48 +26,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <Container>
       <NotificationListener />
-      <Sidebar>
+      <Sidebar $collapsed={isCollapsed}>
         <SidebarHeader>
-          <LogoArea>
+          <LogoArea $collapsed={isCollapsed}>
             <LogoIcon>✨</LogoIcon>
-            <div>
-              <Logo>LuxeAdmin</Logo>
+            <LogoText $collapsed={isCollapsed}>
+              <Logo>Swarnika</Logo>
               <RoleBadge>Administrator</RoleBadge>
-            </div>
+            </LogoText>
           </LogoArea>
+          <CollapseToggle onClick={() => setIsCollapsed(!isCollapsed)}>
+            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </CollapseToggle>
         </SidebarHeader>
 
-        <NavMenu>
+        <NavMenu $collapsed={isCollapsed}>
           {navItems.map((item) => {
             const isActive = item.exact 
               ? pathname === item.path 
               : pathname.startsWith(item.path);
 
             return (
-              <NavLink key={item.path} href={item.path} $active={isActive}>
-                <IconWrapper $active={isActive}>{item.icon}</IconWrapper>
-                {item.label}
+              <NavLink key={item.path} href={item.path} $active={isActive} $collapsed={isCollapsed} title={isCollapsed ? item.label : ''}>
+                <IconWrapper $active={isActive} $collapsed={isCollapsed}>{item.icon}</IconWrapper>
+                <LinkLabel $collapsed={isCollapsed}>{item.label}</LinkLabel>
               </NavLink>
             );
           })}
         </NavMenu>
 
-        <SidebarFooter>
-          <UserProfile>
+        <SidebarFooter $collapsed={isCollapsed}>
+          <UserProfile $collapsed={isCollapsed}>
             <UserAvatar>{user?.email?.charAt(0).toUpperCase() || 'A'}</UserAvatar>
-            <UserInfo>
+            <UserInfo $collapsed={isCollapsed}>
               <UserName>Admin</UserName>
               <UserEmail>{user?.email}</UserEmail>
             </UserInfo>
           </UserProfile>
-          <LogoutButton onClick={logout}>
+          <LogoutButton onClick={logout} $collapsed={isCollapsed} title={isCollapsed ? "Sign Out" : ""}>
             <LogOut size={18} />
-            <span>Sign Out</span>
+            <LinkLabel $collapsed={isCollapsed}>Sign Out</LinkLabel>
           </LogoutButton>
         </SidebarFooter>
       </Sidebar>
 
-      <MainContent>
+      <MainContent $collapsed={isCollapsed}>
         <TopBar>
           <TopBarTitle>Welcome back, Admin</TopBarTitle>
           <TopBarActions>
@@ -87,8 +91,8 @@ const Container = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
 `;
 
-const Sidebar = styled.aside`
-  width: 280px;
+const Sidebar = styled.aside<{ $collapsed: boolean }>`
+  width: ${({ $collapsed }) => $collapsed ? '80px' : '280px'};
   background: ${({ theme }) => theme.colors.surface};
   border-right: 1px solid ${({ theme }) => theme.colors.border};
   display: flex;
@@ -99,16 +103,58 @@ const Sidebar = styled.aside`
   top: 0;
   z-index: 100;
   box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+  transition: width ${({ theme }) => theme.transitions.normal};
 `;
 
 const SidebarHeader = styled.div`
   padding: 32px 24px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100px;
 `;
 
-const LogoArea = styled.div`
+const CollapseToggle = styled.button`
+  position: absolute;
+  right: -12px;
+  top: 40px;
+  width: 24px;
+  height: 24px;
+  background: ${({ theme }) => theme.colors.primary};
+  border: none;
+  border-radius: 50%;
+  color: ${({ theme }) => theme.colors.secondary};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 101;
+  transition: all ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    transform: scale(1.1);
+    background: ${({ theme }) => theme.colors.primaryDark};
+  }
+`;
+
+const LogoArea = styled.div<{ $collapsed: boolean }>`
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: ${({ $collapsed }) => $collapsed ? 'center' : 'flex-start'};
+  width: 100%;
+  transition: all ${({ theme }) => theme.transitions.normal};
+`;
+
+const LogoText = styled.div<{ $collapsed: boolean }>`
+  opacity: ${({ $collapsed }) => $collapsed ? 0 : 1};
+  width: ${({ $collapsed }) => $collapsed ? 0 : 'auto'};
+  transform: translateX(${({ $collapsed }) => $collapsed ? '-10px' : '0'});
+  transition: all ${({ theme }) => theme.transitions.normal};
+  overflow: hidden;
+  white-space: nowrap;
 `;
 
 const LogoIcon = styled.div`
@@ -116,6 +162,7 @@ const LogoIcon = styled.div`
   background: linear-gradient(135deg, ${({ theme }) => theme.colors.primaryDark}, ${({ theme }) => theme.colors.primary});
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  flex-shrink: 0;
 `;
 
 const Logo = styled.h1`
@@ -134,26 +181,49 @@ const RoleBadge = styled.span`
   letter-spacing: 1px;
 `;
 
-const NavMenu = styled.nav`
+const NavMenu = styled.nav<{ $collapsed: boolean }>`
   flex: 1;
   padding: 0 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.1);
+    border-radius: 4px;
+  }
 `;
 
-const IconWrapper = styled.div<{ $active?: boolean }>`
+const IconWrapper = styled.div<{ $active?: boolean; $collapsed?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textMuted};
+  min-width: ${({ $collapsed }) => $collapsed ? '48px' : '20px'};
+  transition: all ${({ theme }) => theme.transitions.fast};
 `;
 
-const NavLink = styled(Link)<{ $active?: boolean }>`
+const LinkLabel = styled.span<{ $collapsed: boolean }>`
+  opacity: ${({ $collapsed }) => $collapsed ? 0 : 1};
+  width: ${({ $collapsed }) => $collapsed ? 0 : 'auto'};
+  transform: translateX(${({ $collapsed }) => $collapsed ? '-10px' : '0'});
+  transition: all ${({ theme }) => theme.transitions.normal};
+  overflow: hidden;
+  white-space: nowrap;
+`;
+
+const NavLink = styled(Link)<{ $active?: boolean; $collapsed: boolean }>`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: ${({ $collapsed }) => $collapsed ? '0' : '12px'};
+  padding: ${({ $collapsed }) => $collapsed ? '14px 0' : '14px 16px'};
+  justify-content: ${({ $collapsed }) => $collapsed ? 'center' : 'flex-start'};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   font-size: 15px;
   font-weight: 500;
@@ -161,6 +231,7 @@ const NavLink = styled(Link)<{ $active?: boolean }>`
   background: ${({ $active, theme }) => $active ? `linear-gradient(135deg, ${theme.colors.primaryDark}, ${theme.colors.primary})` : 'transparent'};
   transition: all ${({ theme }) => theme.transitions.fast};
   box-shadow: ${({ $active, theme }) => $active ? theme.shadows.glow : 'none'};
+  white-space: nowrap;
 
   &:hover {
     background: ${({ $active, theme }) => $active ? '' : 'rgba(255,255,255,0.03)'};
@@ -172,17 +243,20 @@ const NavLink = styled(Link)<{ $active?: boolean }>`
   }
 `;
 
-const SidebarFooter = styled.div`
-  padding: 24px;
+const SidebarFooter = styled.div<{ $collapsed: boolean }>`
+  padding: ${({ $collapsed }) => $collapsed ? '24px 16px' : '24px'};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 `;
 
-const UserProfile = styled.div`
+const UserProfile = styled.div<{ $collapsed: boolean }>`
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
-  padding: 12px;
+  justify-content: ${({ $collapsed }) => $collapsed ? 'center' : 'flex-start'};
+  padding: ${({ $collapsed }) => $collapsed ? '8px' : '12px'};
   background: rgba(255,255,255,0.02);
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: 1px solid rgba(255,255,255,0.05);
@@ -202,8 +276,13 @@ const UserAvatar = styled.div<{ $small?: boolean }>`
   flex-shrink: 0;
 `;
 
-const UserInfo = styled.div`
+const UserInfo = styled.div<{ $collapsed: boolean }>`
+  opacity: ${({ $collapsed }) => $collapsed ? 0 : 1};
+  width: ${({ $collapsed }) => $collapsed ? 0 : 'auto'};
+  transform: translateX(${({ $collapsed }) => $collapsed ? '-10px' : '0'});
+  transition: all ${({ theme }) => theme.transitions.normal};
   overflow: hidden;
+  white-space: nowrap;
 `;
 
 const UserName = styled.div`
@@ -221,7 +300,7 @@ const UserEmail = styled.div`
   text-overflow: ellipsis;
 `;
 
-const LogoutButton = styled.button`
+const LogoutButton = styled.button<{ $collapsed: boolean }>`
   width: 100%;
   padding: 12px;
   background: transparent;
@@ -233,7 +312,7 @@ const LogoutButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: ${({ $collapsed }) => $collapsed ? '0' : '8px'};
   transition: all ${({ theme }) => theme.transitions.fast};
 
   &:hover {
@@ -243,12 +322,13 @@ const LogoutButton = styled.button`
   }
 `;
 
-const MainContent = styled.main`
+const MainContent = styled.main<{ $collapsed: boolean }>`
   flex: 1;
-  margin-left: 280px;
+  margin-left: ${({ $collapsed }) => $collapsed ? '80px' : '280px'};
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: margin-left ${({ theme }) => theme.transitions.normal};
 `;
 
 const TopBar = styled.header`

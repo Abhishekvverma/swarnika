@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,15 +7,20 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Animated,
-  Easing,
+  StatusBar,
+  Share,
+  Alert,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../navigation/type";
-import { WishlistContext } from "../context/WishlistContext";
-import { CartContext } from "../context/CartContext";
+import ProductCard from "../components/ProductCard";
+import { useTheme } from "../theme/ThemeContext";
+import { Fonts } from "../constants/fonts";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { addToCart } from "../store/slices/cartSlice";
+import { toggleWishlist } from "../store/slices/wishlistSlice";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ProductDetail">;
 
@@ -23,6 +28,14 @@ const { width } = Dimensions.get("window");
 
 const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { product } = route.params;
+  const { colors, theme } = useTheme();
+  const { products } = useAppSelector((state) => state.store);
+
+  const relatedProducts = products
+    .filter((p) => p.id !== product.id)
+    .sort((a, b) => (a.category === product.category ? -1 : 1))
+    .slice(0, 4);
+
   const getSizesForCategory = (category: string) => {
     switch (category?.toLowerCase()) {
       case 'ring':
@@ -39,52 +52,55 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const sizes = getSizesForCategory(product.category);
   const [selectedSize, setSelectedSize] = useState<string>(sizes[0] || '');
 
-  const { isWishlisted, toggleWishlist } = useContext(WishlistContext);
-  const { addToCart, totalItems } = useContext(CartContext);
-  const wishlisted = isWishlisted(product.id);
+  const dispatch = useAppDispatch();
+  const wishlist = useAppSelector((state) => state.wishlist.wishlist);
+  const cart = useAppSelector((state) => state.cart.cart);
+  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const wishlisted = wishlist.some((w) => w.id === product.id);
 
   const productPrice = parseFloat(String(product.price).replace(/[^0-9.]/g, ""));
 
-  // 360 Rotation Animation
-  const spinValue = React.useRef(new Animated.Value(0)).current;
-
-  const handle360Rotate = () => {
-    spinValue.setValue(0);
-    Animated.timing(spinValue, {
-      toValue: 1,
-      duration: 2000,
-      easing: Easing.inOut(Easing.ease),
-      useNativeDriver: true,
-    }).start();
+  const handleShare = async () => {
+    try {
+      const message = `Check out the gorgeous "${product.name}" on Swarnika! ✨\nPrice: ₹${productPrice.toLocaleString()}\n\nExplore and buy the finest certified jewelry here!`;
+      await Share.share({
+        message,
+        title: product.name,
+      });
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to share product");
+    }
   };
 
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg']
-  });
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+        <TouchableOpacity
+          style={[styles.headerIcon, { borderColor: colors.border, backgroundColor: colors.card }]}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>AURUM</Text>
 
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIcon}>
-            <Ionicons name="share-social-outline" size={24} color="#000" />
+          <TouchableOpacity
+            style={[styles.headerIcon, { borderColor: colors.border, backgroundColor: colors.card }]}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-social-outline" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.headerIcon}
+            style={[styles.headerIcon, { borderColor: colors.border, backgroundColor: colors.card }]}
             onPress={() => navigation.navigate("Cart")}
           >
-            <Ionicons name="bag-outline" size={24} color="#000" />
+            <Ionicons name="bag-outline" size={20} color={colors.text} />
             {totalItems > 0 && (
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>
+              <View style={[styles.badgeContainer, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+                <Text style={[styles.badgeText, { color: colors.background }]}>
                   {totalItems > 99 ? "99+" : totalItems}
                 </Text>
               </View>
@@ -95,92 +111,74 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Main Image Container */}
-        <View style={styles.imageContainer}>
-          <Animated.Image
+        <View style={[styles.imageContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Image
             source={{ uri: product.image }}
-            style={[styles.mainImage, { transform: [{ rotateY: spin }] }]}
+            style={styles.mainImage}
             resizeMode="contain"
           />
           {/* Wishlist Pill */}
           <TouchableOpacity
-            style={styles.wishlistPill}
+            style={[styles.wishlistPill, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() =>
-              toggleWishlist({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-              })
+              dispatch(
+                toggleWishlist({
+                  id: product.id,
+                  name: product.name,
+                  price: productPrice,
+                  image: product.image,
+                })
+              )
             }
           >
             <Ionicons
               name={wishlisted ? "heart" : "heart-outline"}
-              size={16}
-              color={wishlisted ? "#d9534f" : "#d9534f"}
+              size={14}
+              color={wishlisted ? "#E74C3C" : colors.primary}
             />
-            <Text style={styles.wishlistText}>WISHLIST</Text>
+            <Text style={[styles.wishlistText, { color: colors.text }]}>WISHLIST</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Thumbnails */}
-        <View style={styles.thumbnailRow}>
-          {[1, 2, 3].map((item, index) => (
-            <View key={item} style={styles.thumbnailWrapper}>
-              <Image
-                source={{ uri: product.image }}
-                style={styles.thumbnailImage}
-                resizeMode="cover"
-              />
-              {index === 2 && (
-                <View style={styles.zoomOverlay}>
-                  <TouchableOpacity style={styles.zoomButton} onPress={handle360Rotate}>
-                    <Ionicons name="refresh" size={16} color="#000" />
-                    <Text style={styles.zoomText}>360°</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
 
         <View style={styles.content}>
           {/* Title & Price Row */}
           <View style={styles.titlePriceRow}>
             <View style={styles.titleContainer}>
-              <Text style={styles.name}>{product.name}</Text>
-              <Text style={styles.subtitle}>
-                {(product as any).purity || '18K'} Gold · Hallmarked
+              <Text style={[styles.name, { color: colors.text }]}>{product.name}</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                {(product as any).purity || '18K'} Gold · Guaranteed BIS Hallmarked
               </Text>
             </View>
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>₹{productPrice.toLocaleString()}</Text>
-              <Text style={styles.taxText}>incl. all taxes</Text>
+              <Text style={[styles.price, { color: colors.primary }]}>₹{productPrice.toLocaleString()}</Text>
+              <Text style={[styles.taxText, { color: colors.textSecondary }]}>incl. all taxes</Text>
             </View>
           </View>
 
           {/* Rating Row */}
           <View style={styles.ratingRow}>
-            <Ionicons name="star-outline" size={16} color="#B8860B" />
-            <Text style={styles.ratingText}>4.9 · 128 reviews</Text>
-            <View style={styles.badgePill}>
-              <Ionicons name="shield-checkmark-outline" size={14} color="#000" />
-              <Text style={styles.badgePillText}>BIS Hallmarked</Text>
+            <Ionicons name="star" size={14} color={colors.primary} />
+            <Text style={[styles.ratingText, { color: colors.text }]}>4.9 (128 Reviews)</Text>
+            <View style={[styles.badgePill, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
+              <Text style={[styles.badgePillText, { color: colors.textSecondary }]}>BIS Hallmarked</Text>
             </View>
           </View>
 
           {/* Info Blocks */}
           <View style={styles.infoBlocksRow}>
-            <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>MATERIAL</Text>
-              <Text style={styles.infoValue}>{(product as any).purity || '18K'} Gold</Text>
+            <View style={[styles.infoBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>MATERIAL</Text>
+              <Text style={[styles.infoValue, { color: colors.text }]}>{(product as any).purity || '18K'} Gold</Text>
             </View>
-            <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>MAKING</Text>
-              <Text style={styles.infoValue}>₹{(product as any).makingCharges || 0}</Text>
+            <View style={[styles.infoBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>MAKING</Text>
+              <Text style={[styles.infoValue, { color: colors.text }]}>₹{((product as any).makingCharges || 0).toLocaleString()}</Text>
             </View>
-            <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>WEIGHT</Text>
-              <Text style={styles.infoValue}>{(product as any).weight ? `${(product as any).weight} g` : '--'}</Text>
+            <View style={[styles.infoBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>WEIGHT</Text>
+              <Text style={[styles.infoValue, { color: colors.text }]}>{(product as any).weight ? `${(product as any).weight} g` : '4.5 g'}</Text>
             </View>
           </View>
 
@@ -188,9 +186,9 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           {sizes.length > 0 && (
             <View style={styles.sizeSection}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Size</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>SELECT SIZE</Text>
                 <TouchableOpacity>
-                  <Text style={styles.linkText}>Size guide</Text>
+                  <Text style={[styles.linkText, { color: colors.primary }]}>Size guide</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.sizesRow}>
@@ -199,14 +197,16 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                     key={size}
                     style={[
                       styles.sizeCircle,
-                      selectedSize === size && styles.sizeCircleSelected,
+                      { borderColor: colors.border, backgroundColor: colors.card },
+                      selectedSize === size && [styles.sizeCircleSelected, { backgroundColor: colors.primary, borderColor: colors.primary }],
                     ]}
                     onPress={() => setSelectedSize(size)}
                   >
                     <Text
                       style={[
                         styles.sizeText,
-                        selectedSize === size && styles.sizeTextSelected,
+                        { color: colors.text },
+                        selectedSize === size && [styles.sizeTextSelected, { color: colors.background }],
                       ]}
                     >
                       {size}
@@ -220,13 +220,10 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           {/* Description Section */}
           <View style={styles.descriptionSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Description</Text>
-              <TouchableOpacity>
-                <Text style={styles.linkText}>Read more</Text>
-              </TouchableOpacity>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>THE DESIGN STORY</Text>
             </View>
-            <Text style={styles.descriptionText}>
-              {(product as any).description || "Inspired by the winter solstice, this halo ring features a brilliant-cut centre diamond encircled by a constellation of pavé-set stones, handcrafted in 18K white gold for a luminous, timeless glow."}
+            <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
+              {(product as any).description || "Inspired by classical royalty, this exquisite masterpiece features a brilliant-cut center stone encircled by a constellation of pavé-set gems, handcrafted in certified fine gold for a luminous, timeless glow."}
             </Text>
           </View>
 
@@ -236,37 +233,89 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tagsContainer}
           >
-            {["Free insured shipping", "30-day returns", "Lifetime polish"].map(
+            {["Free Insured Shipping", "30-Day Returns", "Lifetime Polish"].map(
               (tag, index) => (
-                <View key={index} style={styles.tagPill}>
-                  <Text style={styles.tagText}>{tag}</Text>
+                <View key={index} style={[styles.tagPill, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
                 </View>
               )
             )}
           </ScrollView>
+
+          {/* Customer Reviews Section */}
+          <View style={styles.reviewsSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>GUEST REVIEWS</Text>
+              <TouchableOpacity>
+                <Text style={[styles.linkText, { color: colors.primary }]}>View all</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewsScroll}>
+              {[
+                { name: "Ananya S.", rating: 5, comment: "Absolutely stunning! The gold purity and finish are top-notch." },
+                { name: "Rahul K.", rating: 4, comment: "Incredibly crafted design, very elegant for formal occasions." },
+                { name: "Sanya M.", rating: 5, comment: "Exceeded my expectations. Beautiful packaging and perfectly hallmarked." }
+              ].map((review, i) => (
+                <View key={i} style={[styles.reviewCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <View style={styles.reviewHeader}>
+                    <Text style={[styles.reviewerName, { color: colors.text }]}>{review.name}</Text>
+                    <View style={styles.starsRow}>
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <Ionicons key={s} name="star" size={10} color={s <= review.rating ? colors.primary : colors.border} />
+                      ))}
+                    </View>
+                  </View>
+                  <Text style={[styles.reviewComment, { color: colors.textSecondary }]} numberOfLines={2}>"{review.comment}"</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Related Products Section */}
+          {relatedProducts.length > 0 && (
+            <View style={styles.relatedSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>YOU MAY ALSO LIKE</Text>
+              </View>
+              <View style={styles.relatedGrid}>
+                {relatedProducts.map((prod) => (
+                  <ProductCard
+                    key={prod.id}
+                    id={prod.id || ""}
+                    name={prod.name}
+                    price={prod.price.toString()}
+                    image={prod.image || ""}
+                    onPress={() => navigation.navigate("ProductDetail", { product: prod } as any)}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
 
       {/* Bottom Actions Bar */}
-    
+      <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
         <View style={styles.bottomBarInner}>
-        
           <TouchableOpacity
-            style={styles.addButton}
+            style={[styles.addButton, { backgroundColor: colors.text }]}
             onPress={() => {
-              addToCart({
-                id: product.id,
-                name: product.name,
-                price: productPrice,
-                image: product.image,
-                quantity: 1, // Quantity defaults to 1
-              });
+              dispatch(
+                addToCart({
+                  id: product.id,
+                  name: product.name,
+                  price: productPrice,
+                  image: product.image,
+                  quantity: 1,
+                })
+              );
               navigation.goBack();
             }}
           >
-            <Text style={styles.addText}>ADD TO CART</Text>
+            <Text style={[styles.addText, { color: colors.background }]}>ADD TO SHOPPING BAG</Text>
           </TouchableOpacity>
-       
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -277,7 +326,6 @@ export default ProductDetailScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -293,13 +341,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "transparent",
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 2,
-    color: "#000",
+    fontSize: 15,
+    fontFamily: Fonts.bold,
+    letterSpacing: 3,
   },
   headerRight: {
     flexDirection: "row",
@@ -309,96 +355,51 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -2,
     right: -2,
-    backgroundColor: "#E91E63",
     borderRadius: 10,
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1.5,
   },
   badgeText: {
-    color: "#fff",
-    fontSize: 9,
-    fontWeight: "bold",
+    fontSize: 8,
+    fontFamily: Fonts.bold,
   },
   scrollContent: {
     paddingBottom: 40,
   },
   imageContainer: {
     width: "100%",
-    backgroundColor: "#f9f9f9",
     position: "relative",
+    borderBottomWidth: 1,
   },
   mainImage: {
     width: "100%",
-    height: width * 1.1,
+    height: width * 1.05,
     resizeMode: "contain",
   },
   wishlistPill: {
     position: "absolute",
     top: 16,
     right: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E5C8C8",
   },
   wishlistText: {
-    color: "#d9534f",
     fontSize: 10,
-    fontWeight: "600",
-    marginLeft: 4,
-    letterSpacing: 0.5,
+    fontFamily: Fonts.bold,
+    marginLeft: 6,
+    letterSpacing: 1,
   },
-  thumbnailRow: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    marginTop: -20,
-    gap: 12,
-  },
-  thumbnailWrapper: {
-    flex: 1,
-    height: 60,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    overflow: "hidden",
-    position: "relative",
-  },
-  thumbnailImage: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#fff",
-  },
-  zoomOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  zoomButton: {
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  zoomText: {
-    fontSize: 10,
-    fontWeight: "500",
-    marginLeft: 4,
-  },
+
   content: {
     padding: 16,
+    paddingTop: 24,
   },
   titlePriceRow: {
     flexDirection: "row",
@@ -411,182 +412,211 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   name: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#111",
+    fontSize: 22,
+    fontFamily: Fonts.bold,
     marginBottom: 6,
+    lineHeight: 28,
   },
   subtitle: {
-    fontSize: 13,
-    color: "#666",
+    fontSize: 12,
+    fontFamily: Fonts.regular,
     lineHeight: 18,
   },
   priceContainer: {
     alignItems: "flex-end",
   },
   price: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#B8860B",
+    fontSize: 22,
+    fontFamily: Fonts.bold,
   },
   taxText: {
-    fontSize: 11,
-    color: "#888",
+    fontSize: 10,
+    fontFamily: Fonts.regular,
     marginTop: 2,
   },
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 12,
-    marginBottom: 20,
+    marginTop: 14,
+    marginBottom: 24,
   },
   ratingText: {
-    fontSize: 13,
-    color: "#333",
-    marginLeft: 4,
-    fontWeight: "500",
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    marginLeft: 6,
   },
   badgePill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 20,
+    borderWidth: 1,
     marginLeft: 12,
   },
   badgePillText: {
-    fontSize: 11,
-    fontWeight: "500",
+    fontSize: 10,
+    fontFamily: Fonts.medium,
     marginLeft: 4,
-    color: "#333",
   },
   infoBlocksRow: {
     flexDirection: "row",
-    gap: 8,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 28,
   },
   infoBlock: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: "center",
   },
   infoLabel: {
-    fontSize: 10,
-    color: "#888",
-    letterSpacing: 0.5,
+    fontSize: 9,
+    fontFamily: Fonts.medium,
+    letterSpacing: 1,
     marginBottom: 4,
   },
   infoValue: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#111",
+    fontSize: 13,
+    fontFamily: Fonts.bold,
   },
   sizeSection: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#111",
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    letterSpacing: 1.5,
   },
   linkText: {
-    fontSize: 13,
-    color: "#B8860B",
-    fontWeight: "500",
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    letterSpacing: 0.5,
   },
   sizesRow: {
     flexDirection: "row",
     gap: 12,
   },
   sizeCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1.5,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
   },
   sizeCircleSelected: {
-    backgroundColor: "#C49A33",
-    borderColor: "#C49A33",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   sizeText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#333",
+    fontSize: 14,
+    fontFamily: Fonts.bold,
   },
-  sizeTextSelected: {
-    color: "#fff",
-  },
+  sizeTextSelected: {},
   descriptionSection: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   descriptionText: {
-    fontSize: 14,
-    color: "#555",
-    lineHeight: 22,
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    lineHeight: 20,
   },
   tagsContainer: {
     flexDirection: "row",
     gap: 8,
-    marginBottom: 20,
+    marginBottom: 24,
     paddingBottom: 8,
   },
   tagPill: {
-    backgroundColor: "#f2f2f2",
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   tagText: {
-    fontSize: 12,
-    color: "#666",
-    fontWeight: "400",
+    fontSize: 11,
+    fontFamily: Fonts.medium,
   },
   bottomBar: {
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    backgroundColor: "#fff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  
-  
+    paddingVertical: 14,
+    paddingHorizontal: 20,
   },
   bottomBarInner: {
     flexDirection: "row",
-    gap: 12,
-      width:"90%",
-      alignSelf:"center"
-  },
-  outlineSquareBtn: {
-    width: 50,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
+    width: "100%",
   },
   addButton: {
     flex: 1,
-    backgroundColor: "#C49A33",
-    borderRadius: 8,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    height: 50,
+    height: 54,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   addText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-    letterSpacing: 0.5,
+    fontSize: 13,
+    fontFamily: Fonts.bold,
+    letterSpacing: 1.5,
+  },
+  reviewsSection: {
+    marginTop: 12,
+    marginBottom: 10,
+  },
+  reviewsScroll: {
+    paddingRight: 20,
+    marginTop: 4,
+  },
+  reviewCard: {
+    width: 250,
+    padding: 16,
+    borderRadius: 20,
+    marginRight: 14,
+    borderWidth: 1,
+  },
+  reviewHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  reviewerName: {
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+  },
+  starsRow: {
+    flexDirection: "row",
+    gap: 2,
+  },
+  reviewComment: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    lineHeight: 18,
+    fontStyle: "italic",
+  },
+  relatedSection: {
+    marginTop: 28,
+    marginBottom: 10,
+  },
+  relatedGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 4,
   },
 });

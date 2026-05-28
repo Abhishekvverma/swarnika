@@ -41,7 +41,7 @@ export default function DashboardOverview() {
       <Header>
         <div>
           <Title>Dashboard Overview</Title>
-          <Subtitle>Real-time metrics for Luxe Gems</Subtitle>
+          <Subtitle>Real-time metrics for Swarnika</Subtitle>
         </div>
         <DatePill>
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}

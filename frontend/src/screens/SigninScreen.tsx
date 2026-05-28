@@ -1,180 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   StyleSheet,
-//   KeyboardAvoidingView,
-//   Alert,
-//   StatusBar,
-// } from "react-native";
-// import { useNavigation } from "@react-navigation/native";
-// import Feather from "react-native-vector-icons/Feather";
-// import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-// import { Fonts } from "../constants/fonts";
-// import { signInWithEmailAndPassword } from "firebase/auth";
-// import { auth } from "../firebase/config";
-
-// const SigninScreen = () => {
-//   const navigation = useNavigation<any>();
-
-//   const [isVisible, setIsVisible] = useState(false);
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-
-//  const handleSignin = async () => {
-//   if (!email || !password) {
-//     Alert.alert("Error", "Please fill all fields");
-//     return;
-//   }
-
-//   try {
-//     await signInWithEmailAndPassword(auth, email, password);
-
-//     Alert.alert("Success", "Login successful");
-
-   
-    
-
-//   } catch (error: any) {
-//     Alert.alert("Login Error", error.message);
-//   }
-// };
-
-
-//   return (
-//     <KeyboardAvoidingView style={styles.container} behavior="padding">
-//       <StatusBar barStyle={"dark-content"} />
-
-//       <Text style={styles.title}>Welcome Back</Text>
-//       <Text style={styles.subtitle}>
-//         Sign in to continue managing your business.
-//       </Text>
-
-//       {/* Email */}
-//       <View style={styles.inputBox}>
-//         <MaterialIcons name="email" size={20} color="#00000061" />
-//         <TextInput
-//           style={styles.input}
-//           placeholder="Email"
-//           keyboardType="email-address"
-//           autoCapitalize="none"
-//           value={email}
-//           onChangeText={setEmail}
-//         />
-//       </View>
-
-//       {/* Password */}
-//       <View style={styles.inputBox}>
-//         <MaterialIcons name="lock" size={20} color="#00000061" />
-//         <TextInput
-//           style={styles.input}
-//           placeholder="Password"
-//           secureTextEntry={!isVisible}
-//           value={password}
-//           onChangeText={setPassword}
-//         />
-//         <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
-//           <Feather
-//             name={isVisible ? "eye" : "eye-off"}
-//             size={20}
-//             color="#00000061"
-//           />
-//         </TouchableOpacity>
-//       </View>
-
-//       {/* Sign In Button */}
-//       <TouchableOpacity style={styles.button} onPress={handleSignin}>
-//         <Text style={styles.buttonText}>Sign In</Text>
-//       </TouchableOpacity>
-
-//       <Text style={styles.footer}>
-//         Don’t have an account?{" "}
-//         <Text
-//           style={styles.link}
-//           onPress={() => navigation.navigate("Signup")}
-//         >
-//           Sign Up
-//         </Text>
-//       </Text>
-//     </KeyboardAvoidingView>
-//   );
-// };
-
-// export default SigninScreen;
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     paddingTop: 60,
-//     paddingBottom: 60,
-//     paddingHorizontal: 20,
-//     backgroundColor: "#ffffff",
-//   },
-
-//   title: {
-//     fontSize: 26,
-//     fontFamily: Fonts.bold,
-//     marginTop: 45,
-//   },
-
-//   subtitle: {
-//     fontSize: 14,
-//     color: "#000000a3",
-//     lineHeight: 20,
-//     marginTop: -4,
-//     marginBottom: 40,
-//     fontFamily: Fonts.regular,
-//   },
-
-//   inputBox: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     borderWidth: 1,
-//     borderRadius: 8,
-//     paddingHorizontal: 10,
-//     marginBottom: 15,
-//     height: 50,
-//     borderColor: "#00000061",
-//   },
-
-//   input: {
-//     flex: 1,
-//     marginLeft: 10,
-//    top:2,
-//     fontFamily: Fonts.regular,
-//   },
-
-//   button: {
-//     height: 50,
-//     backgroundColor: "#B8860B", 
-//     borderRadius: 10,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     marginTop: 70,
-//     marginBottom: 30,
-//   },
-
-//   buttonText: {
-//     color: "#fff",
-//     fontSize: 16,
-//     fontFamily: Fonts.medium,
-//   },
-
-//   footer: {
-//     fontSize: 13,
-//     color: "#000000a3",
-//     textAlign: "center",
-//     fontFamily: Fonts.regular,
-//   },
-
-//   link: {
-//     color: "#B8860B",
-//     fontFamily: Fonts.medium,
-//   },
-// });
-
 
 
 import React, { useState } from "react";
@@ -187,20 +10,30 @@ import {
   KeyboardAvoidingView,
   Alert,
   StatusBar,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { Fonts } from "../constants/fonts";
-import { loginUser, loginWithGoogle } from "../firebase/auth"; // adjust path if needed
+import { loginUser, loginWithGoogle } from "../firebase/auth";
+import { useTheme } from "../theme/ThemeContext";
+
+const { height } = Dimensions.get("window");
 
 const SigninScreen = () => {
   const navigation = useNavigation<any>();
+  const { colors, theme } = useTheme();
 
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Focus states for luxurious input rings
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const getFriendlyError = (code: string) => {
     switch (code) {
@@ -212,8 +45,6 @@ const SigninScreen = () => {
         return "Invalid email address.";
       case "auth/invalid-credential":
         return "Invalid email or password.";
-      case "auth/operation-not-supported-in-this-environment":
-        return "Google Sign-In is only natively supported on the Web via this method. Native Expo requires a Development Build and further Google Cloud setup.";
       default:
         return "Something went wrong. Please try again.";
     }
@@ -250,81 +81,130 @@ const SigninScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <StatusBar barStyle={"dark-content"} />
-
-      <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>
-        Sign in to continue managing your business.
-      </Text>
-
-      {/* Email */}
-      <View style={styles.inputBox}>
-        <MaterialIcons name="email" size={20} color="#00000061" />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
-      </View>
-
-      {/* Password */}
-      <View style={styles.inputBox}>
-        <MaterialIcons name="lock" size={20} color="#00000061" />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          secureTextEntry={!isVisible}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
-          <Feather
-            name={isVisible ? "eye" : "eye-off"}
-            size={20}
-            color="#00000061"
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Sign In Button */}
-      <TouchableOpacity
-        style={[styles.button, loading && { opacity: 0.7 }]}
-        onPress={handleSignin}
-        disabled={loading}
+    <KeyboardAvoidingView 
+      style={[styles.container, { backgroundColor: colors.background }]} 
+      behavior="padding"
+    >
+      <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingVertical: 40 }}
       >
-        <Text style={styles.buttonText}>
-          {loading ? "Signing In..." : "Sign In"}
+        {/* Brand Logo Header */}
+        <View style={styles.brandContainer}>
+          <Text style={[styles.brandTitle, { color: colors.text }]}>L U X E  G E M S</Text>
+          <Text style={[styles.brandSubtitle, { color: colors.primary }]}>EXQUISITE JEWELLERY</Text>
+        </View>
+
+        <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Sign in to discover premium gold, diamond, and bridal collections curated just for you.
         </Text>
-      </TouchableOpacity>
 
-      {/* Google Sign In Placeholder */}
-      <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
-      </View>
-      <TouchableOpacity 
-        style={[styles.googleButton, loading && { opacity: 0.7 }]}
-        onPress={handleGoogleSignin}
-        disabled={loading}
-      >
-          <MaterialIcons name="g-translate" size={20} color="#EA4335" />
-          <Text style={styles.googleButtonText}>Sign In with Google</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.footer}>
-        Don’t have an account?{" "}
-        <Text
-          style={styles.link}
-          onPress={() => navigation.navigate("Signup")}
+        {/* Email Input */}
+        <View 
+          style={[
+            styles.inputBox, 
+            { 
+              backgroundColor: colors.card,
+              borderColor: isEmailFocused ? colors.primary : colors.border,
+            }
+          ]}
         >
-          Sign Up
+          <MaterialIcons name="email" size={20} color={isEmailFocused ? colors.primary : colors.textSecondary} />
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            placeholder="Email Address"
+            placeholderTextColor={colors.textSecondary}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+            onFocus={() => setIsEmailFocused(true)}
+            onBlur={() => setIsEmailFocused(false)}
+          />
+        </View>
+
+        {/* Password Input */}
+        <View 
+          style={[
+            styles.inputBox, 
+            { 
+              backgroundColor: colors.card,
+              borderColor: isPasswordFocused ? colors.primary : colors.border,
+            }
+          ]}
+        >
+          <MaterialIcons name="lock" size={20} color={isPasswordFocused ? colors.primary : colors.textSecondary} />
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            placeholder="Password"
+            placeholderTextColor={colors.textSecondary}
+            secureTextEntry={!isVisible}
+            value={password}
+            onChangeText={setPassword}
+            onFocus={() => setIsPasswordFocused(true)}
+            onBlur={() => setIsPasswordFocused(false)}
+          />
+          <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
+            <Feather
+              name={isVisible ? "eye" : "eye-off"}
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Sign In Button */}
+        <TouchableOpacity
+          style={[
+            styles.button, 
+            { backgroundColor: colors.text }, 
+            loading && { opacity: 0.7 }
+          ]}
+          onPress={handleSignin}
+          disabled={loading}
+        >
+          <Text style={[styles.buttonText, { color: colors.background }]}>
+            {loading ? "SIGNING IN..." : "SIGN IN"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OR</Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        </View>
+
+        {/* Google Sign In */}
+        <TouchableOpacity 
+          style={[
+            styles.googleButton, 
+            { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+            },
+            loading && { opacity: 0.7 }
+          ]}
+          onPress={handleGoogleSignin}
+          disabled={loading}
+        >
+          <MaterialIcons name="g-translate" size={20} color="#EA4335" />
+          <Text style={[styles.googleButtonText, { color: colors.text }]}>Sign In with Google</Text>
+        </TouchableOpacity>
+
+        <Text style={[styles.footer, { color: colors.textSecondary }]}>
+          Don’t have an account?{" "}
+          <Text
+            style={[styles.link, { color: colors.primary }]}
+            onPress={() => navigation.navigate("Signup")}
+          >
+            Sign Up
+          </Text>
         </Text>
-      </Text>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -334,104 +214,121 @@ export default SigninScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
-    paddingBottom: 60,
-    paddingHorizontal: 20,
-    backgroundColor: "#ffffff",
+    paddingHorizontal: 24,
+  },
+
+  brandContainer: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+
+  brandTitle: {
+    fontSize: 22,
+    fontFamily: Fonts.bold,
+    letterSpacing: 4,
+  },
+
+  brandSubtitle: {
+    fontSize: 10,
+    fontFamily: Fonts.medium,
+    letterSpacing: 2,
+    marginTop: 4,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontFamily: Fonts.bold,
-    marginTop: 45,
+    marginBottom: 8,
+    letterSpacing: 0.5,
   },
 
   subtitle: {
-    fontSize: 14,
-    color: "#000000a3",
+    fontSize: 13,
     lineHeight: 20,
-    marginTop: -4,
-    marginBottom: 40,
+    marginBottom: 32,
     fontFamily: Fonts.regular,
   },
 
   inputBox: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
-    height: 50,
-    borderColor: "#00000061",
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    height: 56,
   },
 
   input: {
     flex: 1,
-    marginLeft: 10,
-    top: 2,
+    marginLeft: 12,
+    fontSize: 14,
     fontFamily: Fonts.regular,
   },
 
   button: {
-    height: 50,
-    backgroundColor: "#B8860B",
-    borderRadius: 10,
+    height: 56,
+    borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 70,
-    marginBottom: 30,
+    marginTop: 30,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
   },
 
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: Fonts.medium,
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    letterSpacing: 1.5,
   },
 
   footer: {
     fontSize: 13,
-    color: "#000000a3",
     textAlign: "center",
     fontFamily: Fonts.regular,
+    marginTop: 10,
   },
 
   link: {
-    color: "#B8860B",
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.bold,
   },
+  
   dividerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-    marginTop: -10,
+    marginBottom: 24,
+    marginTop: 10,
   },
+  
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#eee",
   },
+  
   dividerText: {
-    marginHorizontal: 10,
-    color: "#888",
-    fontSize: 12,
-    fontFamily: Fonts.regular,
+    marginHorizontal: 16,
+    fontSize: 11,
+    fontFamily: Fonts.bold,
+    letterSpacing: 1,
   },
+  
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    marginBottom: 30,
-    backgroundColor: "#fff",
+    height: 56,
+    borderWidth: 1.5,
+    borderRadius: 28,
+    marginBottom: 24,
   },
+  
   googleButtonText: {
-    marginLeft: 10,
-    fontSize: 16,
+    marginLeft: 12,
+    fontSize: 14,
     fontFamily: Fonts.medium,
-    color: "#333",
   },
 });

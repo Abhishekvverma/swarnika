@@ -34,6 +34,20 @@ export function NotificationListener() {
           // Manually register the SW for Next.js compatibility
           const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
           
+          // Wait for the service worker to become active to avoid "Subscription failed - no active Service Worker"
+          const serviceWorker = registration.installing || registration.waiting || registration.active;
+          if (serviceWorker) {
+            if (serviceWorker.state !== 'activated') {
+              await new Promise<void>((resolve) => {
+                serviceWorker.addEventListener('statechange', (e) => {
+                  if ((e.target as ServiceWorker).state === 'activated') {
+                    resolve();
+                  }
+                });
+              });
+            }
+          }
+
           const token = await getToken(messaging, {
             serviceWorkerRegistration: registration,
           });

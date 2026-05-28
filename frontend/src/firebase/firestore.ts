@@ -5,7 +5,11 @@ import {
   addDoc,
   setDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where,
+  getCountFromServer,
+  getDoc
 } from "firebase/firestore";
 import app  from "./config";
 import { Product, Order, Category, Banner, UserProfile } from "./types";
@@ -58,6 +62,28 @@ export const updateUserPushToken = async (userId: string, pushToken: string): Pr
   await setDoc(doc(db, "users", userId), {
     pushToken,
   }, { merge: true });
+};
+
+// Get User Orders Count
+export const getUserOrdersCount = async (userId: string): Promise<number> => {
+  const q = query(collection(db, "orders"), where("userId", "==", userId));
+  const snapshot = await getCountFromServer(q);
+  return snapshot.data().count;
+};
+
+// Get User Profile Data (for loyalty points, etc.)
+export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
+  const docRef = doc(db, "users", userId);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() } as UserProfile;
+  }
+  return null;
+};
+
+// Update User Profile Data
+export const updateUserProfile = async (userId: string, data: Partial<UserProfile>): Promise<void> => {
+  await setDoc(doc(db, "users", userId), data, { merge: true });
 };
 
 export { db };

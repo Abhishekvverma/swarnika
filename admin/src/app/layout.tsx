@@ -11,8 +11,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Luxe Gems Admin",
-  description: "Admin dashboard for Luxe Gems",
+  title: "Swarnika Admin",
+  description: "Admin dashboard for Swarnika",
 };
 
 export default function RootLayout({

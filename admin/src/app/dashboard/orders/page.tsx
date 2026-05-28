@@ -149,7 +149,7 @@ export default function OrdersPage() {
 }
 
 const Container = styled.div`
-  padding: 40px;
+  width: 100%;
 `;
 
 const Header = styled.div`
@@ -163,12 +163,12 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  color: ${({ theme }) => theme.colors.textMuted};
   font-size: 14px;
 `;
 
 const TableContainer = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 12px;
   box-shadow: ${({ theme }) => theme.shadows.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -184,12 +184,12 @@ const Table = styled.table`
     text-align: left;
     border-bottom: 1px solid ${({ theme }) => theme.colors.border};
     font-size: 14px;
-    color: #000;
+    color: ${({ theme }) => theme.colors.text};
   }
 
   th {
-    background: #fafafa;
-    color: #666;
+    background: rgba(255, 255, 255, 0.02);
+    color: ${({ theme }) => theme.colors.textMuted};
     font-weight: 500;
   }
 `;
@@ -199,27 +199,36 @@ const Select = styled.select`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 4px;
   font-size: 13px;
-  background: white;
+  background: rgba(255, 255, 255, 0.02);
+  color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
+
+  option {
+    background: ${({ theme }) => theme.colors.surface};
+    color: ${({ theme }) => theme.colors.text};
+  }
 `;
 
 const LoadingText = styled.div`
   padding: 40px;
   text-align: center;
-  color: #666;
+  color: ${({ theme }) => theme.colors.textMuted};
 `;
 
 const ViewBtn = styled.button`
-  background: #000;
-  color: #fff;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.secondary};
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
   
   &:hover {
-    background: #333;
+    opacity: 0.9;
+    transform: translateY(-1px);
   }
 `;
 
@@ -234,13 +243,13 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: ${({ theme }) => theme.colors?.surface || '#fff'};
+  background: ${({ theme }) => theme.colors.surface};
   width: 90%;
   max-width: 600px;
   max-height: 80vh;
   border-radius: 12px;
   overflow-y: auto;
-  box-shadow: ${({ theme }) => theme.shadows?.lg || '0 10px 25px rgba(0,0,0,0.2)'};
+  box-shadow: ${({ theme }) => theme.shadows.lg};
 `;
 
 const ModalHeader = styled.div`
@@ -248,12 +257,12 @@ const ModalHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.border || '#eee'};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   
   h2 {
     margin: 0;
     font-size: 20px;
-    color: ${({ theme }) => theme.colors?.text || '#000'};
+    color: ${({ theme }) => theme.colors.text};
   }
 `;
 
@@ -262,7 +271,7 @@ const CloseBtn = styled.button`
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: ${({ theme }) => theme.colors?.textMuted || '#666'};
+  color: ${({ theme }) => theme.colors.textMuted};
 `;
 
 const ModalBody = styled.div`
@@ -276,19 +285,19 @@ const Section = styled.div`
     margin: 0 0 8px 0;
     font-size: 14px;
     text-transform: uppercase;
-    color: ${({ theme }) => theme.colors?.textMuted || '#888'};
+    color: ${({ theme }) => theme.colors.textMuted};
     letter-spacing: 0.5px;
   }
   
   p {
     margin: 0 0 4px 0;
-    color: ${({ theme }) => theme.colors?.text || '#333'};
+    color: ${({ theme }) => theme.colors.text};
     font-size: 15px;
   }
 `;
 
 const ItemList = styled.div`
-  border: 1px solid ${({ theme }) => theme.colors?.border || '#eee'};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 8px;
   overflow: hidden;
 `;
@@ -297,9 +306,9 @@ const ItemRow = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.border || '#eee'};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   font-size: 14px;
-  color: ${({ theme }) => theme.colors?.text || '#333'};
+  color: ${({ theme }) => theme.colors.text};
   
   &:last-child {
     border-bottom: none;

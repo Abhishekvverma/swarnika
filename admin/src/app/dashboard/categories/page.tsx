@@ -121,7 +121,7 @@ export default function CategoriesPage() {
 }
 
 const Container = styled.div`
-  padding: 40px;
+  width: 100%;
 `;
 
 const Header = styled.div`
@@ -138,18 +138,24 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  color: ${({ theme }) => theme.colors.textMuted};
   font-size: 14px;
 `;
 
 const AddButton = styled.button`
   background: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.secondary};
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
 `;
 
 const FormBox = styled.form`
@@ -192,12 +198,18 @@ const Input = styled.input`
 
 const SubmitButton = styled.button`
   background: ${({ theme }) => theme.colors.primaryDark};
-  color: white;
+  color: ${({ theme }) => theme.colors.secondary};
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
 `;
 
 const TableContainer = styled.div`
@@ -232,7 +244,8 @@ const ImagePreview = styled.div`
   height: 50px;
   border-radius: 8px;
   overflow: hidden;
-  background: #eee;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid ${({ theme }) => theme.colors.border};
   display: flex;
   align-items: center;
   justify-content: center;

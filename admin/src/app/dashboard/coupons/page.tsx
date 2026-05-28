@@ -125,7 +125,7 @@ export default function CouponsPage() {
 }
 
 const Container = styled.div`
-  padding: 40px;
+  width: 100%;
 `;
 
 const Header = styled.div`
@@ -142,22 +142,28 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  color: ${({ theme }) => theme.colors.textMuted};
   font-size: 14px;
 `;
 
 const AddButton = styled.button`
   background: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.secondary};
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
 `;
 
 const FormBox = styled.form`
-  background: white;
+  background: ${({ theme }) => theme.colors.surface};
   padding: 24px;
   border-radius: 12px;
   box-shadow: ${({ theme }) => theme.shadows.sm};
@@ -185,25 +191,38 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  padding: 10px;
+  padding: 12px 16px;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
+  background: rgba(255, 255, 255, 0.02);
+  color: ${({ theme }) => theme.colors.text};
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const SubmitButton = styled.button`
   background: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.secondary};
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
 `;
 
 const TableContainer = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 12px;
   box-shadow: ${({ theme }) => theme.shadows.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -219,13 +238,12 @@ const Table = styled.table`
     text-align: left;
     border-bottom: 1px solid ${({ theme }) => theme.colors.border};
     font-size: 14px;
-    color: #000;
-
+    color: ${({ theme }) => theme.colors.text};
   }
 
   th {
-    background: #fafafa;
-    color: #666;
+    background: rgba(255, 255, 255, 0.02);
+    color: ${({ theme }) => theme.colors.textMuted};
     font-weight: 500;
   }
 `;

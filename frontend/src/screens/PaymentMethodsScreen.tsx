@@ -1,34 +1,39 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../theme/ThemeContext";
+import { Fonts } from "../constants/fonts";
 
 export default function PaymentMethodsScreen() {
   const navigation = useNavigation();
+  const { colors, theme } = useTheme();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color="#000" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Payment Methods</Text>
-        <View style={{ width: 24 }} />
+        <Text style={[styles.headerTitle, { color: colors.text }]}>PAYMENT METHODS</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.content}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.cardHeader}>
-                <Icon name="card" size={24} color="#D4AF37" />
-                <Text style={styles.cardType}>Visa ending in 4242</Text>
+                <Icon name="card" size={22} color={colors.primary} />
+                <Text style={[styles.cardType, { color: colors.text }]}>Visa ending in 4242</Text>
             </View>
-            <Text style={styles.expiry}>Exp 12/28</Text>
+            <Text style={[styles.expiry, { color: colors.textSecondary }]}>Exp 12/28</Text>
         </View>
 
-        <TouchableOpacity style={styles.addBtn}>
-            <Icon name="add" size={20} color="#fff" />
-            <Text style={styles.addBtnText}>Add New Card</Text>
+        <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.text }]} activeOpacity={0.9}>
+            <Icon name="add" size={18} color={colors.background} />
+            <Text style={[styles.addBtnText, { color: colors.background }]}>ADD NEW CARD</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -36,24 +41,37 @@ export default function PaymentMethodsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
   },
-  headerTitle: { fontSize: 18, fontWeight: "600" },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: { 
+    fontSize: 14, 
+    fontFamily: Fonts.bold,
+    letterSpacing: 2,
+  },
   content: { padding: 20 },
   card: {
       borderWidth: 1,
-      borderColor: "#eee",
-      borderRadius: 12,
+      borderRadius: 20,
       padding: 16,
       marginBottom: 20,
-      backgroundColor: "#fafafa"
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.03,
+      shadowRadius: 8,
+      elevation: 2,
   },
   cardHeader: {
       flexDirection: "row",
@@ -61,20 +79,31 @@ const styles = StyleSheet.create({
       marginBottom: 10,
       gap: 10,
   },
-  cardType: { fontWeight: "bold", fontSize: 16 },
-  expiry: { color: "#555", marginTop: 4 },
+  cardType: { 
+    fontSize: 15, 
+    fontFamily: Fonts.bold,
+  },
+  expiry: { 
+    fontFamily: Fonts.regular,
+    fontSize: 13, 
+    marginTop: 4,
+  },
   addBtn: {
-      backgroundColor: "#1A1A1A",
       padding: 16,
-      borderRadius: 8,
+      borderRadius: 30,
       alignItems: "center",
       flexDirection: "row",
       justifyContent: "center",
-      gap: 8,
+      gap: 6,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 2,
   },
   addBtnText: {
-      color: "#fff",
-      fontWeight: "bold",
-      fontSize: 16,
+      fontFamily: Fonts.bold,
+      fontSize: 13,
+      letterSpacing: 1,
   }
 });
